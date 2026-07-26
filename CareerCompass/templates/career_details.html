@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ career.name }} - Career Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+    <a class="brand" href="/">Career Compass</a>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/career-discovery">Restart</a></li>
+        <li><a href="/roadmap">Roadmaps</a></li>
+        <li><a href="/resources">Resources</a></li>
+    </ul>
+</nav>
+
+<main class="page-container career-page">
+    <header class="career-header">
+        <p class="eyebrow">{{ domain_name }}</p>
+        <h1>{{ career.name }}</h1>
+        <p>{{ career.description }}</p>
+    </header>
+
+    <section class="career-information-grid">
+        <article class="career-info-card">
+            <h2>Required Skills</h2>
+            <ul>
+                {% for skill in career.skills %}
+                <li>{{ skill }}</li>
+                {% endfor %}
+            </ul>
+        </article>
+
+        <article class="career-info-card">
+            <h2>Tools and Technologies</h2>
+            <ul>
+                {% for tool in career.tools %}
+                <li>{{ tool }}</li>
+                {% endfor %}
+            </ul>
+        </article>
+
+        <article class="career-info-card career-opportunities">
+            <h2>Career Opportunities</h2>
+            <p>After developing these skills, you can explore roles such as:</p>
+            <div class="career-tags">
+                {% for opportunity in career.opportunities %}
+                <span>{{ opportunity }}</span>
+                {% endfor %}
+            </div>
+        </article>
+    </section>
+
+    <div class="center">
+        <p>Ready to start learning this career?</p>
+        <a class="btn" href="{{ url_for('learning_roadmap', specialization=specialization) }}">View Learning Roadmap</a>
+    </div>
+</main>
+</body>
+</html>

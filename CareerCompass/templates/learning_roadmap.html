@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ roadmap.name }} Roadmap</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+    <a class="brand" href="/">Career Compass</a>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/career-discovery">Restart</a></li>
+        <li><a href="/resources">Resources</a></li>
+    </ul>
+</nav>
+
+<main class="page-container learning-roadmap-page">
+    <header class="page-header">
+        <p class="eyebrow">Step-by-step learning path</p>
+        <h1>{{ roadmap.name }} Roadmap</h1>
+        <p>Complete each level in order. Build the suggested project before moving to the next level.</p>
+    </header>
+
+    <section class="roadmap-levels">
+        <article class="roadmap-level beginner-level">
+            <div class="level-heading">
+                <span>1</span>
+                <div><p>Level One</p><h2>Beginner</h2></div>
+            </div>
+            <ol>
+                {% for step in roadmap.beginner %}
+                <li>{{ step }}</li>
+                {% endfor %}
+            </ol>
+        </article>
+
+        <article class="roadmap-level intermediate-level">
+            <div class="level-heading">
+                <span>2</span>
+                <div><p>Level Two</p><h2>Intermediate</h2></div>
+            </div>
+            <ol>
+                {% for step in roadmap.intermediate %}
+                <li>{{ step }}</li>
+                {% endfor %}
+            </ol>
+        </article>
+
+        <article class="roadmap-level advanced-level">
+            <div class="level-heading">
+                <span>3</span>
+                <div><p>Level Three</p><h2>Advanced</h2></div>
+            </div>
+            <ol>
+                {% for step in roadmap.advanced %}
+                <li>{{ step }}</li>
+                {% endfor %}
+            </ol>
+        </article>
+    </section>
+
+    <div class="roadmap-tip">
+        <h2>Learning Tip</h2>
+        <p>Do not try to learn everything at once. Study one topic, practise it, and build a small project before continuing.</p>
+    </div>
+
+    <div class="center">
+        <p>Use these selected resources to complete your roadmap.</p>
+        <a class="btn" href="{{ url_for('resource_hub', specialization=specialization) }}">View Learning Resources</a>
+    </div>
+</main>
+</body>
+</html>

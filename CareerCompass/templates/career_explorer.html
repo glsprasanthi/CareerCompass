@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Explorer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav>
+    <a class="brand" href="/">Career Compass</a>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/career-discovery">Retake Assessment</a></li>
+        <li><a href="/roadmap">Roadmaps</a></li>
+        <li><a href="/resources">Resources</a></li>
+    </ul>
+</nav>
+
+<div class="quiz-container">
+
+    <h1>Your Recommended Technology Domain</h1>
+
+    <div class="result-card result-summary">
+        <h3>Assessment Results</h3>
+        {% if is_tie %}
+            <p>
+                Your responses indicate strong interest in two domains.
+            </p>
+
+            <p>
+                <strong>{{ domain_names[domain] }}</strong>
+                ({{ primary_score }}%)
+            </p>
+
+            <p>
+                <strong>{{ domain_names[secondary_domain] }}</strong>
+                ({{ secondary_score }}%)
+            </p>
+
+            <p>
+                You may enjoy exploring both domains before choosing a specialization.
+            </p>
+        
+        {% else %}
+            <p>
+                <strong>Primary Match:</strong>
+                {{ domain_names[domain] }}
+                ({{ primary_score }}%)
+            </p>
+
+            <p>
+                <strong>Close Match:</strong>
+                {{ domain_names[secondary_domain] }}
+                ({{ secondary_score }}%)
+            </p>
+
+        {% endif %}
+    </div>
+
+    <div class="result-card">
+        {% if domain == "web" %}
+        <h2>🌐 Web & Application Development</h2>
+        <p>
+            Based on your responses, Web & Application Development
+            appears to align most closely with your interests and
+            problem-solving style.
+        </p>
+        <h3>Why this matches you</h3>
+        <ul>
+            <li>You enjoy creating and building solutions.</li>
+            <li>You like turning ideas into reality.</li>
+            <li>You enjoy making things people can use.</li>
+        </ul>
+
+        {% elif domain == "systems" %}
+        <h2>⚙️ Systems & Infrastructure</h2>
+        <p>
+            Based on your responses, Systems & Infrastructure
+            appears to align most closely with your interests and
+            problem-solving style.
+        </p>
+        <h3>Why this matches you</h3>
+        <ul>
+            <li>You enjoy understanding how things work.</li>
+            <li>You appreciate efficiency and organization.</li>
+            <li>You are curious about systems behind the scenes.</li>
+        </ul>
+
+        {% elif domain == "ai" %}
+        <h2>🤖 Data & Artificial Intelligence</h2>
+        <p>
+            Based on your responses, Data & Artificial Intelligence
+            appears to align most closely with your interests and
+            problem-solving style.
+        </p>
+        <h3>Why this matches you</h3>
+        <ul>
+            <li>You enjoy discovering patterns and insights.</li>
+            <li>You like understanding why things happen.</li>
+            <li>You are naturally analytical and curious.</li>
+        </ul>
+
+        {% elif domain == "security" %}
+        <h2>🛡️ Quality & Security</h2>
+        <p>
+            Based on your responses, Quality & Security
+            appears to align most closely with your interests and
+            problem-solving style.
+        </p>
+        <h3>Why this matches you</h3>
+        <ul>
+            <li>You enjoy identifying risks and issues.</li>
+            <li>You pay attention to details.</li>
+            <li>You like making things reliable and secure.</li>
+        </ul>
+        {% endif %}
+    </div>
+
+    <h2>Career Options</h2>
+
+    <div class="cards">
+        {% if domain == "web" %}
+        <div class="card">
+            <h3>Front-End Developer</h3>
+            <p>Creates the visual part of websites and applications.</p>
+        </div>
+        <div class="card">
+            <h3>Back-End Developer</h3>
+            <p>Builds application logic, databases and APIs.</p>
+        </div>
+        <div class="card">
+            <h3>Full-Stack Developer</h3>
+            <p>Works on both front-end and back-end development.</p>
+        </div>
+        <div class="card">
+            <h3>Mobile App Developer</h3>
+            <p>Creates applications for smartphones and tablets.</p>
+        </div>
+
+        {% elif domain == "systems" %}
+        <div class="card">
+            <h3>DevOps Engineer</h3>
+            <p>Automates workflows and deployments.</p>
+        </div>
+        <div class="card">
+            <h3>Cloud Engineer</h3>
+            <p>Builds and manages cloud infrastructure.</p>
+        </div>
+        <div class="card">
+            <h3>Cloud Architect</h3>
+            <p>Designs large-scale cloud solutions.</p>
+        </div>
+        <div class="card">
+            <h3>Embedded Systems Developer</h3>
+            <p>Works closely with hardware and software.</p>
+        </div>
+
+        {% elif domain == "ai" %}
+        <div class="card">
+            <h3>Data Engineer</h3>
+            <p>Builds systems for collecting and managing data.</p>
+        </div>
+        <div class="card">
+            <h3>Machine Learning Engineer</h3>
+            <p>Develops intelligent systems that learn from data.</p>
+        </div>
+        <div class="card">
+            <h3>Data Scientist</h3>
+            <p>Finds insights and patterns in information.</p>
+        </div>
+
+        {% elif domain == "security" %}
+        <div class="card">
+            <h3>QA Engineer</h3>
+            <p>Ensures software quality and reliability.</p>
+        </div>
+        <div class="card">
+            <h3>Cybersecurity Engineer</h3>
+            <p>Protects systems from threats and attacks.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div style="text-align:center; margin-top:40px;">
+        <h3>Want a More Precise Recommendation?</h3>
+        <p>
+            Take a short specialization assessment to discover
+            which specific career within this domain suits you best.
+        </p>
+        <a href="{{ url_for('specialization_assessment', domain=domain) }}" class="btn">
+            Take Specialization Assessment
+        </a>
+    </div>
+
+</div>
+
+</body>
+</html>

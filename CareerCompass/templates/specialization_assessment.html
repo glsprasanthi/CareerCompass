@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specialization Assessment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+    <a class="brand" href="/">Career Compass</a>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/career-discovery">Restart</a></li>
+    </ul>
+</nav>
+
+<main class="quiz-container specialization-container">
+    <p class="eyebrow">{{ domain_name }}</p>
+    <h1>Specialization Assessment</h1>
+    <p class="intro">Answer these short questions to find the role that suits you best.</p>
+
+    {% if error %}
+        <p class="error" role="alert">{{ error }}</p>
+    {% endif %}
+
+    <form action="{{ url_for('specialization_result') }}" method="POST">
+        <input type="hidden" name="domain" value="{{ domain }}">
+
+        {% for question in questions %}
+        <fieldset class="specialization-question">
+            <legend>{{ loop.index }}. {{ question.question }}</legend>
+
+            {% set question_number = loop.index %}
+            {% for option_text, specialization in question.options %}
+            <label class="option">
+                <input type="radio"
+                       name="question{{ question_number }}"
+                       value="{{ specialization }}"
+                       required>
+                {{ option_text }}
+            </label>
+            {% endfor %}
+        </fieldset>
+        {% endfor %}
+
+        <button class="btn form-button" type="submit">View My Specialization</button>
+    </form>
+</main>
+</body>
+</html>

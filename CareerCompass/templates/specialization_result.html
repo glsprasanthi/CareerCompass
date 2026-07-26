@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specialization Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+    <a class="brand" href="/">Career Compass</a>
+    <ul><li><a href="/">Home</a></li><li><a href="/career-discovery">Restart</a></li></ul>
+</nav>
+
+<main class="quiz-container result-page">
+    <p class="eyebrow">Assessment complete</p>
+    <h1>Your Recommended Specialization</h1>
+    <div class="result-card result-summary">
+        <p>Your domain</p>
+        <h3>{{ domain_name }}</h3>
+        <p class="result-label">Your best specialization match</p>
+        <h2>{{ specialization_name }}</h2>
+    </div>
+    <p>Learn what this role does and what you need to begin.</p>
+    <a class="btn" href="{{ url_for('career_details', domain=domain, specialization=specialization) }}">Explore This Career</a>
+    <p class="secondary-action"><a href="/career-discovery">Restart Assessment</a></p>
+</main>
+</body>
+</html>

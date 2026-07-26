@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ resources.name }} Resources</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+    <a class="brand" href="/">Career Compass</a>
+    <ul><li><a href="/">Home</a></li><li><a href="/career-discovery">Restart</a></li><li><a href="/roadmap">Roadmaps</a></li></ul>
+</nav>
+
+<main class="page-container specialization-resources">
+    <header class="page-header">
+        <p class="eyebrow">Resource Hub</p>
+        <h1>{{ hub_resources.name }} Resources</h1>
+        <p>Use these beginner-friendly resources to study, practise and build projects.</p>
+    </header>
+
+    <section class="resource-category-grid">
+        <article class="resource-category">
+            <h2>Documentation</h2>
+            {% for item in hub_resources.documentation %}
+            <div class="resource-item"><a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.name }} ↗</a><p>{{ item.description }}</p></div>
+            {% endfor %}
+        </article>
+
+        <article class="resource-category">
+            <h2>YouTube Channels</h2>
+            {% for item in hub_resources.get('youtube_channels', youtube_channels) %}
+            <div class="resource-item"><a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.name }} ↗</a><p>{{ item.description }}</p></div>
+            {% endfor %}
+        </article>
+
+        <article class="resource-category">
+            <h2>Free Courses</h2>
+            {% for item in hub_resources.free_courses %}
+            <div class="resource-item"><a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.name }} ↗</a><p>{{ item.description }}</p></div>
+            {% endfor %}
+        </article>
+
+        <article class="resource-category">
+            <h2>Coding Practice</h2>
+            {% for item in hub_resources.practice %}
+            <div class="resource-item"><a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.name }} ↗</a><p>{{ item.description }}</p></div>
+            {% endfor %}
+        </article>
+
+        <article class="resource-category project-category">
+            <h2>Project Ideas</h2>
+            <p>Build one of these projects and add it to your portfolio:</p>
+            <ol>
+                {% for project in hub_resources.project_ideas %}
+                <li>{{ project }}</li>
+                {% endfor %}
+            </ol>
+        </article>
+
+        {% if hub_resources.get('communities') %}
+        <article class="resource-category">
+            <h2>Communities</h2>
+            {% for item in hub_resources.communities %}
+            <div class="resource-item">
+                <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.name }} &nearr;</a>
+                <p>{{ item.description }}</p>
+            </div>
+            {% endfor %}
+        </article>
+        {% endif %}
+
+        {% if hub_resources.get('tools') %}
+        <article class="resource-category">
+            <h2>Useful Tools</h2>
+            {% for item in hub_resources.tools %}
+            <div class="resource-item">
+                <strong>{{ item.name }}</strong>
+                <p>{{ item.description }}</p>
+            </div>
+            {% endfor %}
+        </article>
+        {% endif %}
+    </section>
+
+    <div class="center">
+        <p>View your complete recommendation in one place.</p>
+        <a class="btn" href="{{ url_for('dashboard', specialization=specialization) }}">Open Final Dashboard</a>
+    </div>
+</main>
+</body>
+</html>

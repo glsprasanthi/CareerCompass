@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Discovery</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav>
+    <a class="brand" href="/">Career Compass</a>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/career-discovery">Assessment</a></li>
+        <li><a href="/roadmap">Roadmaps</a></li>
+        <li><a href="/resources">Resources</a></li>
+    </ul>
+</nav>
+
+<div class="quiz-container">
+
+    <h1>Career Discovery Assessment</h1>
+    <p class="intro">Choose the answer that feels most natural to you. There are no wrong answers.</p>
+    {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+
+    <div class="progress">
+        Question <span id="currentQuestion">1</span> of 6
+    </div>
+
+    <form action="/career-explorer" method="POST">
+
+        <!-- Q1 -->
+        <div class="question active">
+            <h3>When you face a problem, what's your first instinct?</h3>
+
+            <label class="option">
+                <input type="radio" name="q1" value="security">
+                Find the root cause of the issue
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q1" value="web">
+                Start trying different solutions immediately
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q1" value="ai">
+                Gather information and look for patterns
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q1" value="systems">
+                Understand how everything involved works
+            </label>
+        </div>
+
+        <!-- Q2 -->
+        <div class="question">
+            <h3>What kind of problems do you enjoy solving?</h3>
+
+            <label class="option">
+                <input type="radio" name="q2" value="ai">
+                Figuring out why something is happening
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q2" value="web">
+                Turning an idea into something real
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q2" value="security">
+                Finding an issue nobody else noticed
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q2" value="systems">
+                Making a complicated process run smoothly
+            </label>
+        </div>
+
+        <!-- Q3 -->
+        <div class="question">
+            <h3>During a group project, what role do you usually end up playing?</h3>
+
+            <label class="option">
+                <input type="radio" name="q3" value="ai">
+                The person researching and learning
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q3" value="web">
+                The person building and creating
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q3" value="security">
+                The person reviewing and finding issues
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q3" value="systems">
+                The person coordinating and organizing
+            </label>
+        </div>
+
+        <!-- Q4 -->
+        <div class="question">
+            <h3>Which of these makes you feel the most curious?</h3>
+            <div class="image-options">
+                <label>
+                    <input type="radio" name="q4" value="web">
+                    <img src="{{ url_for('static', filename='images/web.png') }}" alt="Option 1">
+                </label>
+
+                <label>
+                    <input type="radio" name="q4" value="systems">
+                    <img src="{{ url_for('static', filename='images/network.png') }}" alt="Option 2">
+                </label>
+
+                <label>
+                    <input type="radio" name="q4" value="ai">
+                    <img src="{{ url_for('static', filename='images/aiml.png') }}" alt="Option 3">
+                </label>
+
+                <label>
+                    <input type="radio" name="q4" value="security">
+                    <img src="{{ url_for('static', filename='images/cyber.png') }}" alt="Option 4">
+                </label>
+            </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="question">
+            <h3>At the end of a successful project, what would make you feel the most accomplished?</h3>
+
+            <label class="option">
+                <input type="radio" name="q5" value="systems">
+                Knowing everything runs smoothly and reliably
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q5" value="web">
+                Seeing people benefit from something I created
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q5" value="security">
+                Knowing I helped prevent future problems
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q5" value="ai">
+                Discovering something valuable that others missed
+            </label>
+        </div>
+
+        <!-- Q6 -->
+        <div class="question">
+            <h3>You are given access to a company for one day. What would you be most interested in learning about?</h3>
+
+            <label class="option">
+                <input type="radio" name="q6" value="systems">
+                How their systems operate behind the scenes
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q6" value="ai">
+                How they use information to make decisions
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q6" value="web">
+                How their products are built
+            </label>
+
+            <label class="option">
+                <input type="radio" name="q6" value="security">
+                How they prevent failures and security risks
+            </label>
+        </div>
+
+        <div class="navigation">
+            <button type="button" id="nextBtn">Next</button>
+            <button type="submit" id="submitBtn" style="display:none;">
+                Get Recommendation
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+<script src="{{ url_for('static', filename='quiz.js') }}"></script>
+
+</body>
+</html>
