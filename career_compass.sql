@@ -1,0 +1,27 @@
+CREATE DATABASE IF NOT EXISTS career_compass;
+USE career_compass;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  username VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS survey_results (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT,
+  survey_type VARCHAR(255),
+  data TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS team_assignments (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT,
+  domain VARCHAR(255) NOT NULL,
+  teammate_name VARCHAR(255) NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB;

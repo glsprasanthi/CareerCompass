@@ -1,0 +1,397 @@
+import json
+from flask import Flask, redirect, render_template, request, url_for, session, flash
+from specialization_data import DOMAIN_NAMES, SPECIALIZATION_DOMAINS, SPECIALIZATION_NAMES, SPECIALIZATION_QUESTIONS
+from career_data import CAREER_DETAILS
+from roadmap_data import LEARNING_ROADMAPS
+from resource_data import SPECIALIZATION_RESOURCES, WEB_RESOURCE_HUB, YOUTUBE_CHANNELS, RESOURCE_COLLECTION_DOMAINS
+from db import init_db, create_user, verify_user, save_survey_result, assign_teammate, get_domain_assignments, get_survey_results
+from functools import wraps
+
+app = Flask(__name__)
+app.secret_key = "change-this-secret"
+
+
+@app.context_processor
+def inject_user_status():
+    return {
+        "logged_in": "user_id" in session
+    }
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect(url_for("login", next=request.path))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+
+@app.route("/career-discovery")
+def career_discovery():
+    return render_template("career_discovery.html")
+
+
+@app.route("/career-explorer", methods=["GET", "POST"])
+@login_required
+def career_explorer():
+    if request.method == "GET":
+        return redirect(url_for("career_discovery"))
+
+    scores = {
+        "web": 0,
+        "systems": 0,
+        "ai": 0,
+        "security": 0
+    }
+
+    answers = [
+        request.form.get("q1"),
+        request.form.get("q2"),
+        request.form.get("q3"),
+        request.form.get("q4"),
+        request.form.get("q5"),
+        request.form.get("q6")
+    ]
+
+    if any(answer not in scores for answer in answers):
+        return render_template(
+            "career_discovery.html",
+            error="Please answer all six questions before viewing your result."
+        ), 400
+
+    for answer in answers:
+        if answer in scores:
+            scores[answer] += 1
+
+    total = sum(scores.values())
+
+    percentages = {
+        domain: round((score / total) * 100)
+        for domain, score in scores.items()
+    }
+
+    sorted_domains = sorted(
+        percentages.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    primary_domain = sorted_domains[0][0]
+    primary_score = sorted_domains[0][1]
+
+    secondary_domain = sorted_domains[1][0]
+    secondary_score = sorted_domains[1][1]
+
+    is_tie = primary_score == secondary_score
+
+    domain_names = {
+        "web": "Web & Application Development",
+        "systems": "Systems & Infrastructure",
+        "ai": "Data & Artificial Intelligence",
+        "security": "Quality & Security"
+    }
+
+    # Save career-discovery survey result if user logged in
+    user_id = session.get("user_id")
+    if user_id:
+        try:
+            save_survey_result(user_id, "career_discovery", {
+                "percentages": percentages,
+                "primary": primary_domain,
+                "secondary": secondary_domain
+            })
+        except Exception:
+            pass
+
+    return render_template(
+        "career_explorer.html",
+        domain=primary_domain,
+        primary_score=primary_score,
+        secondary_domain=secondary_domain,
+        secondary_score=secondary_score,
+        domain_names=domain_names,
+        is_tie=is_tie
+    )
+
+
+
+
+@app.route("/specialization-assessment/<domain>")
+@login_required
+def specialization_assessment(domain):
+    if domain not in SPECIALIZATION_QUESTIONS:
+        return redirect(url_for("career_discovery"))
+    questions = SPECIALIZATION_QUESTIONS[domain]
+    return render_template(
+        "specialization_assessment.html",
+        domain=domain,
+        domain_name=DOMAIN_NAMES[domain],
+        questions=questions
+    )
+
+
+@app.route("/specialization-result", methods=["POST"])
+def specialization_result():
+    domain = request.form.get("domain")
+
+    if domain not in SPECIALIZATION_QUESTIONS:
+        return redirect(url_for("career_discovery"))
+
+    questions = SPECIALIZATION_QUESTIONS[domain]
+    valid_specializations = []
+
+    for question in questions:
+        for option_text, specialization in question["options"]:
+            if specialization not in valid_specializations:
+                valid_specializations.append(specialization)
+
+    specialization_scores = {}
+    for specialization in valid_specializations:
+        specialization_scores[specialization] = 0
+
+    for question_number in range(1, len(questions) + 1):
+        answer = request.form.get("question" + str(question_number))
+        if answer not in valid_specializations:
+            return render_template(
+                "specialization_assessment.html",
+                domain=domain,
+                domain_name=DOMAIN_NAMES[domain],
+                questions=questions,
+                error="Please answer every question."
+            ), 400
+        specialization_scores[answer] += 1
+
+    recommended_specialization = max(
+        specialization_scores,
+        key=specialization_scores.get
+    )
+
+    # Save specialization assessment result if user logged in
+    user_id = session.get("user_id")
+    if user_id:
+        try:
+            save_survey_result(user_id, "specialization_assessment", {
+                "domain": domain,
+                "specialization": recommended_specialization,
+                "scores": specialization_scores
+            })
+        except Exception:
+            pass
+
+    return render_template(
+        "specialization_result.html",
+        domain=domain,
+        domain_name=DOMAIN_NAMES[domain],
+        specialization=recommended_specialization,
+        specialization_name=SPECIALIZATION_NAMES[recommended_specialization]
+    )
+
+
+@app.route("/career-details/<domain>/<specialization>")
+def career_details(domain, specialization):
+    if domain not in SPECIALIZATION_QUESTIONS:
+        return redirect(url_for("career_discovery"))
+
+    valid_specializations = []
+    for question in SPECIALIZATION_QUESTIONS[domain]:
+        for option_text, option_value in question["options"]:
+            if option_value not in valid_specializations:
+                valid_specializations.append(option_value)
+
+    if specialization not in valid_specializations:
+        return redirect(url_for("career_discovery"))
+
+    return render_template(
+        "career_details.html",
+        domain_name=DOMAIN_NAMES[domain],
+        specialization=specialization,
+        career=CAREER_DETAILS[specialization]
+    )
+
+
+@app.route("/learning-roadmap/<specialization>")
+def learning_roadmap(specialization):
+    if specialization not in LEARNING_ROADMAPS:
+        return redirect(url_for("career_discovery"))
+
+    roadmap = LEARNING_ROADMAPS[specialization]
+    return render_template(
+        "learning_roadmap.html",
+        specialization=specialization,
+        roadmap=roadmap
+    )
+
+
+@app.route("/resource-hub/<specialization>")
+def resource_hub(specialization):
+    if specialization not in SPECIALIZATION_RESOURCES:
+        return redirect(url_for("career_discovery"))
+
+    resources = SPECIALIZATION_RESOURCES[specialization]
+    hub_resources = resources
+
+    if specialization in ["frontend", "backend", "fullstack"]:
+        hub_resources = WEB_RESOURCE_HUB
+
+    return render_template(
+        "resource_hub.html",
+        specialization=specialization,
+        resources=resources,
+        hub_resources=hub_resources,
+        youtube_channels=YOUTUBE_CHANNELS
+    )
+
+
+@app.route("/resource-collection", methods=["GET", "POST"])
+@login_required
+def resource_collection():
+    user_id = session.get("user_id")
+    selected_domain = None
+    message = None
+
+    if request.method == "POST":
+        selected_domain = request.form.get("domain")
+        teammate_name = request.form.get("teammate_name")
+        notes = request.form.get("notes")
+        try:
+            assign_teammate(user_id, selected_domain, teammate_name, notes)
+            message = f"Assigned {teammate_name} to {RESOURCE_COLLECTION_DOMAINS[selected_domain]['name']}."
+        except Exception as exc:
+            message = str(exc)
+
+    domain_cards = []
+    for domain_key, domain_info in RESOURCE_COLLECTION_DOMAINS.items():
+        domain_cards.append({
+            "domain": domain_key,
+            "name": domain_info["name"],
+            "description": domain_info["description"],
+            "focus_areas": domain_info["focus_areas"],
+            "assignments": get_domain_assignments(user_id, domain_key)
+        })
+
+    return render_template(
+        "resource_collection.html",
+        domain_cards=domain_cards,
+        message=message,
+        selected_domain=selected_domain
+    )
+
+
+@app.route("/profile")
+@login_required
+def profile():
+    user_id = session["user_id"]
+    results = get_survey_results(user_id)
+
+    processed_results = []
+    for row in results:
+        try:
+            data = json.loads(row["data"])
+        except Exception:
+            data = row["data"]
+
+        processed_results.append({
+            "id": row["id"],
+            "survey_type": row["survey_type"],
+            "data": data,
+            "created_at": row["created_at"]
+        })
+
+    domain_names = {
+        "web": "Web & Application Development",
+        "systems": "Systems & Infrastructure",
+        "ai": "Data & Artificial Intelligence",
+        "security": "Quality & Security"
+    }
+
+    return render_template(
+        "profile.html",
+        results=processed_results,
+        domain_names=domain_names,
+        specialization_names=SPECIALIZATION_NAMES
+    )
+
+
+@app.route("/dashboard/<specialization>")
+def dashboard(specialization):
+    if specialization not in SPECIALIZATION_DOMAINS:
+        return redirect(url_for("career_discovery"))
+
+    domain = SPECIALIZATION_DOMAINS[specialization]
+
+    return render_template(
+        "dashboard.html",
+        domain=domain,
+        domain_name=DOMAIN_NAMES[domain],
+        specialization=specialization,
+        specialization_name=SPECIALIZATION_NAMES[specialization],
+        career=CAREER_DETAILS[specialization],
+        roadmap=LEARNING_ROADMAPS[specialization],
+        resources=SPECIALIZATION_RESOURCES[specialization],
+        youtube_channels=YOUTUBE_CHANNELS
+    )
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "GET":
+        return render_template("register.html")
+
+    username = request.form.get("username")
+    password = request.form.get("password")
+    if not username or not password:
+        flash("Please provide username and password")
+        return render_template("register.html"), 400
+
+    try:
+        create_user(username, password)
+    except ValueError as e:
+        flash(str(e))
+        return render_template("register.html"), 400
+
+    flash("Account created. Please log in.")
+    return redirect(url_for("login"))
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html")
+
+    username = request.form.get("username")
+    password = request.form.get("password")
+    user = verify_user(username, password)
+    if not user:
+        flash("Invalid username or password")
+        return render_template("login.html"), 400
+
+    session["user_id"] = user["id"]
+    flash("Logged in successfully")
+    next_url = request.args.get("next") or url_for("profile")
+    return redirect(next_url)
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("Logged out")
+    return redirect(url_for("home"))
+
+
+@app.route("/roadmap")
+def roadmap():
+    return render_template("roadmap.html")
+
+
+@app.route("/resources")
+def resources():
+    return render_template("resources.html")
+
+
+if __name__ == "__main__":
+    app.run(debug=True)

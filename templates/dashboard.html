@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Career Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+    <a class="brand" href="/">Career Compass</a>
+    <ul>
+        <li><a href="#career">Career</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#resources">Resources</a></li>
+        <li><a href="/career-discovery">Restart</a></li>
+    </ul>
+</nav>
+
+<main class="page-container dashboard-page">
+    <header class="dashboard-header">
+        <p class="eyebrow">Your Career Compass</p>
+        <h1>{{ specialization_name }}</h1>
+        <p>Your recommended technology domain is <strong>{{ domain_name }}</strong>.</p>
+        <a class="dashboard-link" href="{{ url_for('career_details', domain=domain, specialization=specialization) }}">View full career details →</a>
+    </header>
+
+    <section id="career" class="dashboard-section">
+        <div class="section-title">
+            <p class="eyebrow">Career Summary</p>
+            <h2>What you will work on</h2>
+        </div>
+        <p class="career-description">{{ career.description }}</p>
+        <div class="dashboard-two-columns">
+            <article class="dashboard-card">
+                <h3>Important Skills</h3>
+                <ul>{% for skill in career.skills %}<li>{{ skill }}</li>{% endfor %}</ul>
+            </article>
+            <article class="dashboard-card">
+                <h3>Common Tools</h3>
+                <ul>{% for tool in career.tools %}<li>{{ tool }}</li>{% endfor %}</ul>
+            </article>
+        </div>
+    </section>
+
+    <section id="roadmap" class="dashboard-section">
+        <div class="section-title">
+            <p class="eyebrow">Learning Roadmap</p>
+            <h2>Your three learning levels</h2>
+        </div>
+        <div class="dashboard-roadmap">
+            <article class="dashboard-card"><span class="level-number">1</span><h3>Beginner</h3><ol>{% for step in roadmap.beginner %}<li>{{ step }}</li>{% endfor %}</ol></article>
+            <article class="dashboard-card"><span class="level-number">2</span><h3>Intermediate</h3><ol>{% for step in roadmap.intermediate %}<li>{{ step }}</li>{% endfor %}</ol></article>
+            <article class="dashboard-card"><span class="level-number">3</span><h3>Advanced</h3><ol>{% for step in roadmap.advanced %}<li>{{ step }}</li>{% endfor %}</ol></article>
+        </div>
+        <a class="dashboard-link" href="{{ url_for('learning_roadmap', specialization=specialization) }}">Open the full roadmap →</a>
+    </section>
+
+    <section id="resources" class="dashboard-section">
+        <div class="section-title">
+            <p class="eyebrow">Resource Hub</p>
+            <h2>Start learning</h2>
+        </div>
+        <div class="dashboard-two-columns">
+            <article class="dashboard-card">
+                <h3>Documentation</h3>
+                {% for item in resources.documentation %}<a class="resource-row" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.name }} ↗</a>{% endfor %}
+                <h3 class="dashboard-subheading">Free Courses</h3>
+                {% for item in resources.free_courses %}<a class="resource-row" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.name }} ↗</a>{% endfor %}
+            </article>
+            <article class="dashboard-card">
+                <h3>Practice</h3>
+                {% for item in resources.practice %}<a class="resource-row" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.name }} ↗</a>{% endfor %}
+                <h3 class="dashboard-subheading">Project Ideas</h3>
+                <ul>{% for project in resources.project_ideas %}<li>{{ project }}</li>{% endfor %}</ul>
+            </article>
+        </div>
+        <a class="dashboard-link" href="{{ url_for('resource_hub', specialization=specialization) }}">Open all resources →</a>
+    </section>
+
+    <section class="restart-panel">
+        <h2>Want to explore a different path?</h2>
+        <p>Restart the assessment and choose the answers that best reflect your interests.</p>
+        <a class="btn" href="/career-discovery">Restart Assessment</a>
+    </section>
+</main>
+</body>
+</html>

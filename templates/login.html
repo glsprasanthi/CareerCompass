@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <div class="auth-page">
+      <div class="auth-left">
+        <div class="auth-card">
+          <a class="auth-brand" href="{{ url_for('home') }}">Career Compass</a>
+          <h2>Welcome back</h2>
+          <p class="intro">Enter your email and password to access your account.</p>
+
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              <div class="error">
+                <ul>
+                  {% for m in messages %}
+                    <li>{{ m }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          <form method="post">
+            <label class="form-label">Email</label>
+            <input name="username" class="form-input" placeholder="you@example.com" />
+
+            <label class="form-label">Password</label>
+            <input name="password" type="password" class="form-input" />
+
+            <div class="remember">
+              <label><input type="checkbox" /> Remember me</label>
+              <div style="flex:1"></div>
+              <a class="small-link" href="#">Forgot Your Password?</a>
+            </div>
+
+            <button type="submit" class="btn primary-btn">Log In</button>
+
+          </form>
+
+          <p class="center" style="margin-top:12px">Don't have an account? <a href="{{ url_for('register') }}">Register Now.</a></p>
+        </div>
+      </div>
+
+      <div class="auth-right">
+        <div class="auth-hero">
+          <h1>Effortlessly manage your learning and career path.</h1>
+          <p>Log in to access your dashboard, track assessments, and follow curated learning roadmaps.</p>
+          <div class="auth-footer">Copyright © Career Compass</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

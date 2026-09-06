@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <div class="auth-page">
+      <div class="auth-left">
+        <div class="auth-card">
+          <a class="auth-brand" href="{{ url_for('home') }}">Career Compass</a>
+          <h2>Create your account</h2>
+          <p class="intro">Register to save your assessments and access personalized dashboards.</p>
+
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              <div class="error">
+                <ul>
+                  {% for m in messages %}
+                    <li>{{ m }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          <form method="post">
+            <label class="form-label">Email</label>
+            <input name="username" class="form-input" placeholder="you@example.com" />
+
+            <label class="form-label">Password</label>
+            <input name="password" type="password" class="form-input" />
+
+            <button type="submit" class="btn primary-btn">Create account</button>
+
+          </form>
+
+          <p class="center" style="margin-top:12px">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+        </div>
+      </div>
+
+      <div class="auth-right">
+        <div class="auth-hero">
+          <h1>Effortlessly manage your learning and career path.</h1>
+          <p>Register to build a dashboard, save progress, and access recommended learning roadmaps.</p>
+          <div class="auth-footer">Privacy • Terms</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

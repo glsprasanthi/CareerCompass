@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Career Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+    <a class="brand" href="/">Career Compass</a>
+    <ul>
+        <li><a href="/career-discovery">Assessment</a></li>
+        <li><a href="/roadmap">Roadmaps</a></li>
+        <li><a href="/resources">Resources</a></li>
+        <li><a href="/logout">Logout</a></li>
+    </ul>
+</nav>
+
+<main class="page-container profile-page">
+    <header class="profile-header">
+        <p class="eyebrow">Your Saved Results</p>
+        <h1>Career Compass Profile</h1>
+        <p>These results are saved to your account and updated each time you complete an assessment.</p>
+    </header>
+
+    {% if results %}
+    <section class="profile-results">
+        {% for result in results %}
+            <article class="result-card">
+                <div class="result-header">
+                    <span class="result-type">{{ result.survey_type.replace('_', ' ').title() }}</span>
+                    <span class="result-date">{{ result.created_at }}</span>
+                </div>
+
+                {% if result.survey_type == 'career_discovery' %}
+                    <h2>{{ domain_names[result.data.primary] }}</h2>
+                    <p><strong>Secondary match:</strong> {{ domain_names[result.data.secondary] }}</p>
+                    <div class="score-grid">
+                        {% for key, value in result.data.percentages.items() %}
+                            <div class="score-item">
+                                <span>{{ domain_names[key] }}</span>
+                                <strong>{{ value }}%</strong>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% elif result.survey_type == 'specialization_assessment' %}
+                    <h2>{{ specialization_names[result.data.specialization] }}</h2>
+                    <p><strong>Domain:</strong> {{ domain_names[result.data.domain] }}</p>
+                    <div class="score-grid">
+                        {% for specialization, score in result.data.scores.items() %}
+                            <div class="score-item">
+                                <span>{{ specialization_names[specialization] }}</span>
+                                <strong>{{ score }}</strong>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <pre>{{ result.data }}</pre>
+                {% endif %}
+            </article>
+        {% endfor %}
+    </section>
+    {% else %}
+    <section class="empty-state">
+        <p>You have no saved results yet. Complete an assessment to save your outcome.</p>
+        <a href="/career-discovery" class="btn">Take an Assessment</a>
+    </section>
+    {% endif %}
+</main>
+</body>
+</html>

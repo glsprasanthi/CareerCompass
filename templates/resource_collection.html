@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Collection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav>
+    <a class="brand" href="/">Career Compass</a>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/career-discovery">Assessment</a></li>
+        <li><a href="/resources">Resources</a></li>
+    </ul>
+</nav>
+
+<main class="page-container resource-collection">
+    <header class="page-header">
+        <p class="eyebrow">Resource Collection</p>
+        <h1>Assign teammates to collect resources by domain</h1>
+        <p>Choose a collaboration domain, assign your teammate, and track collection progress.</p>
+    </header>
+
+    {% if message %}
+    <div class="message-banner">{{ message }}</div>
+    {% endif %}
+
+    {% for card in domain_cards %}
+    <article class="domain-card">
+        <h2>{{ card.name }}</h2>
+        <p>{{ card.description }}</p>
+        <p><strong>Focus areas:</strong></p>
+        <ul>
+            {% for item in card.focus_areas %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+
+        <form method="post">
+            <input type="hidden" name="domain" value="{{ card.domain }}" />
+            <label class="form-label">Teammate name</label>
+            <input type="text" name="teammate_name" placeholder="e.g. Priya" />
+            <label class="form-label" style="margin-top:12px">Notes</label>
+            <textarea name="notes" rows="3" placeholder="What to collect or priority areas"></textarea>
+            <button type="submit">Assign teammate</button>
+        </form>
+
+        {% if card.assignments %}
+        <div class="assignment-list">
+            <strong>Assignments</strong>
+            <ul>
+                {% for assignment in card.assignments %}
+                <li><strong>{{ assignment.teammate_name }}</strong> — {{ assignment.notes or 'No notes' }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </article>
+    {% endfor %}
+</main>
+</body>
+</html>
