@@ -13,7 +13,6 @@
 
     <ul>
         <li><a href="/">Home</a></li>
-        <li><a href="/career-discovery">Career Discovery</a></li>
         <li><a href="/career-discovery">Assessment</a></li>
         <li><a href="/roadmap">Roadmaps</a></li>
         <li><a href="/resources">Resources</a></li>
@@ -26,6 +25,16 @@
         {% endif %}
     </ul>
 </nav>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-messages" style="max-width: 600px; margin: 20px auto 0; padding: 0 20px;">
+      {% for category, m in messages %}
+        <div class="flash-message flash-{{ category }}">{{ m }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
 
 <section class="hero">
     <h1>From Confusion to Career Clarity</h1>

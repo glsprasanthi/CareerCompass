@@ -10,6 +10,7 @@
 <nav>
     <a class="brand" href="/">Career Compass</a>
     <ul>
+        <li><a href="/">Home</a></li>
         <li><a href="/career-discovery">Assessment</a></li>
         <li><a href="/roadmap">Roadmaps</a></li>
         <li><a href="/resources">Resources</a></li>
@@ -18,10 +19,20 @@
 </nav>
 
 <main class="page-container profile-page">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, m in messages %}
+            <div class="flash-message flash-{{ category }}">{{ m }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <header class="profile-header">
         <p class="eyebrow">Your Saved Results</p>
         <h1>Career Compass Profile</h1>
-        <p>These results are saved to your account and updated each time you complete an assessment.</p>
+        <p>Welcome, {{ user_name or 'Student' }}. These results are saved to your account and updated each time you complete an assessment.</p>
     </header>
 
     {% if results %}

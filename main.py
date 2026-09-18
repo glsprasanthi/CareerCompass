@@ -3,9 +3,24 @@ from flask import Flask, redirect, render_template, request, url_for, session, f
 from specialization_data import DOMAIN_NAMES, SPECIALIZATION_DOMAINS, SPECIALIZATION_NAMES, SPECIALIZATION_QUESTIONS
 from career_data import CAREER_DETAILS
 from roadmap_data import LEARNING_ROADMAPS
-from resource_data import SPECIALIZATION_RESOURCES, WEB_RESOURCE_HUB, YOUTUBE_CHANNELS, RESOURCE_COLLECTION_DOMAINS
+from resource_data import (
+    SPECIALIZATION_RESOURCES,
+    WEB_RESOURCE_HUB,
+    AI_RESOURCE_HUB,
+    SYSTEMS_RESOURCE_HUB,
+    SECURITY_RESOURCE_HUB,
+    YOUTUBE_CHANNELS,
+    RESOURCE_COLLECTION_DOMAINS
+)
 from db import init_db, create_user, verify_user, save_survey_result, assign_teammate, get_domain_assignments, get_survey_results
 from functools import wraps
+
+DOMAIN_RESOURCE_HUBS = {
+    "web": WEB_RESOURCE_HUB,
+    "ai": AI_RESOURCE_HUB,
+    "systems": SYSTEMS_RESOURCE_HUB,
+    "security": SECURITY_RESOURCE_HUB
+}
 
 app = Flask(__name__)
 app.secret_key = "change-this-secret"
@@ -14,7 +29,9 @@ app.secret_key = "change-this-secret"
 @app.context_processor
 def inject_user_status():
     return {
-        "logged_in": "user_id" in session
+        "logged_in": "user_id" in session,
+        "user_name": session.get("user_name"),
+        "user_email": session.get("user_email")
     }
 
 
@@ -37,7 +54,6 @@ def career_discovery():
 
 
 @app.route("/career-explorer", methods=["GET", "POST"])
-@login_required
 def career_explorer():
     if request.method == "GET":
         return redirect(url_for("career_discovery"))
@@ -122,7 +138,6 @@ def career_explorer():
 
 
 @app.route("/specialization-assessment/<domain>")
-@login_required
 def specialization_assessment(domain):
     if domain not in SPECIALIZATION_QUESTIONS:
         return redirect(url_for("career_discovery"))
@@ -229,21 +244,23 @@ def learning_roadmap(specialization):
 
 @app.route("/resource-hub/<specialization>")
 def resource_hub(specialization):
-    if specialization not in SPECIALIZATION_RESOURCES:
+    domain = SPECIALIZATION_DOMAINS.get(specialization)
+    if not domain and specialization in DOMAIN_RESOURCE_HUBS:
+        domain = specialization
+
+    if specialization not in SPECIALIZATION_RESOURCES and domain not in DOMAIN_RESOURCE_HUBS:
         return redirect(url_for("career_discovery"))
 
-    resources = SPECIALIZATION_RESOURCES[specialization]
-    hub_resources = resources
-
-    if specialization in ["frontend", "backend", "fullstack"]:
-        hub_resources = WEB_RESOURCE_HUB
+    resources = SPECIALIZATION_RESOURCES.get(specialization, DOMAIN_RESOURCE_HUBS.get(domain))
+    hub_resources = DOMAIN_RESOURCE_HUBS.get(domain, WEB_RESOURCE_HUB)
+    youtube_channels = hub_resources.get("youtube_channels", YOUTUBE_CHANNELS)
 
     return render_template(
         "resource_hub.html",
         specialization=specialization,
         resources=resources,
         hub_resources=hub_resources,
-        youtube_channels=YOUTUBE_CHANNELS
+        youtube_channels=youtube_channels
     )
 
 
@@ -323,6 +340,8 @@ def dashboard(specialization):
         return redirect(url_for("career_discovery"))
 
     domain = SPECIALIZATION_DOMAINS[specialization]
+    hub_resources = DOMAIN_RESOURCE_HUBS.get(domain, WEB_RESOURCE_HUB)
+    youtube_channels = hub_resources.get("youtube_channels", YOUTUBE_CHANNELS)
 
     return render_template(
         "dashboard.html",
@@ -333,7 +352,7 @@ def dashboard(specialization):
         career=CAREER_DETAILS[specialization],
         roadmap=LEARNING_ROADMAPS[specialization],
         resources=SPECIALIZATION_RESOURCES[specialization],
-        youtube_channels=YOUTUBE_CHANNELS
+        youtube_channels=youtube_channels
     )
 
 
@@ -342,19 +361,21 @@ def register():
     if request.method == "GET":
         return render_template("register.html")
 
-    username = request.form.get("username")
-    password = request.form.get("password")
-    if not username or not password:
-        flash("Please provide username and password")
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email") or request.form.get("username", "")
+    password = request.form.get("password", "")
+
+    if not email or not password:
+        flash("Please provide an email and password.", "error")
         return render_template("register.html"), 400
 
     try:
-        create_user(username, password)
+        create_user(name, email, password)
     except ValueError as e:
-        flash(str(e))
+        flash(str(e), "error")
         return render_template("register.html"), 400
 
-    flash("Account created. Please log in.")
+    flash("Account created successfully. Please log in.", "success")
     return redirect(url_for("login"))
 
 
@@ -363,23 +384,33 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
 
-    username = request.form.get("username")
-    password = request.form.get("password")
-    user = verify_user(username, password)
+    email = request.form.get("email") or request.form.get("username", "")
+    password = request.form.get("password", "")
+
+    if not email or not password:
+        flash("Please enter both email and password.", "error")
+        return render_template("login.html"), 400
+
+    user = verify_user(email, password)
     if not user:
-        flash("Invalid username or password")
+        flash("Invalid email or password.", "error")
         return render_template("login.html"), 400
 
     session["user_id"] = user["id"]
-    flash("Logged in successfully")
-    next_url = request.args.get("next") or url_for("profile")
-    return redirect(next_url)
+    session["user_name"] = user.get("name") or user.get("username")
+    session["user_email"] = user.get("email") or user.get("username")
+    flash(f"Welcome back, {session['user_name']}!", "success")
+
+    next_url = request.args.get("next")
+    if next_url and next_url.startswith("/") and next_url not in ["/login", "/register", "/logout"]:
+        return redirect(next_url)
+    return redirect(url_for("profile"))
 
 
 @app.route("/logout")
 def logout():
     session.clear()
-    flash("Logged out")
+    flash("Logged out successfully.", "success")
     return redirect(url_for("home"))
 
 

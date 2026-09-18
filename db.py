@@ -18,15 +18,34 @@ def get_connection(database=None):
 def init_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = get_connection()
-
     cur = conn.cursor()
+
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL
+        name TEXT,
+        email TEXT UNIQUE,
+        username TEXT UNIQUE,
+        password_hash TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     """)
+
+    # Safe, idempotent migration for existing database schema
+    cur.execute("PRAGMA table_info(users)")
+    existing_cols = {row["name"] for row in cur.fetchall()}
+
+    if "name" not in existing_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN name TEXT")
+    if "email" not in existing_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN email TEXT")
+    if "created_at" not in existing_cols:
+        cur.execute("ALTER TABLE users ADD COLUMN created_at TIMESTAMP")
+        cur.execute("UPDATE users SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+
+    # Safe backfill for existing rows where email or name is NULL
+    cur.execute("UPDATE users SET email = username WHERE email IS NULL AND username LIKE '%@%'")
+    cur.execute("UPDATE users SET name = username WHERE name IS NULL")
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS survey_results (
@@ -55,25 +74,77 @@ def init_db():
     conn.close()
 
 
-def create_user(username: str, password: str):
-    if not username or not password:
-        raise ValueError("username and password required")
+def create_user(name: str, email: str, password: str):
+    if not email or not password:
+        raise ValueError("Email and password are required.")
+
+    clean_email = email.strip().lower()
+    clean_name = name.strip() if name else clean_email.split("@")[0]
+
+    if not clean_email or "@" not in clean_email:
+        raise ValueError("Please provide a valid email address.")
+
+    if len(password) < 6:
+        raise ValueError("Password must be at least 6 characters long.")
+
     conn = get_connection()
     cur = conn.cursor()
     try:
         cur.execute(
-            f"INSERT INTO users (username, password_hash) VALUES ({SQL_PLACEHOLDER}, {SQL_PLACEHOLDER})",
-            (username, generate_password_hash(password))
+            f"INSERT INTO users (name, email, username, password_hash) VALUES ({SQL_PLACEHOLDER}, {SQL_PLACEHOLDER}, {SQL_PLACEHOLDER}, {SQL_PLACEHOLDER})",
+            (clean_name, clean_email, clean_email, generate_password_hash(password))
         )
         conn.commit()
-    except Exception as exc:
+        user_id = cur.lastrowid
+    except sqlite3.IntegrityError:
         conn.close()
-        if isinstance(exc, sqlite3.IntegrityError):
-            raise ValueError("username already exists")
+        raise ValueError("An account with this email already exists.")
+    except Exception:
+        conn.close()
         raise
-    user_id = cur.lastrowid
+
     conn.close()
     return user_id
+
+
+def verify_user(email_or_username: str, password: str):
+    if not email_or_username or not password:
+        return None
+
+    clean_identifier = email_or_username.strip()
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT id, name, email, username, password_hash, created_at FROM users WHERE LOWER(email) = LOWER({SQL_PLACEHOLDER}) OR LOWER(username) = LOWER({SQL_PLACEHOLDER})",
+        (clean_identifier, clean_identifier)
+    )
+    row = cur.fetchone()
+    conn.close()
+    if not row:
+        return None
+    if check_password_hash(row["password_hash"], password):
+        return {
+            "id": row["id"],
+            "name": row["name"] or row["username"],
+            "email": row["email"] or row["username"],
+            "username": row["username"],
+            "created_at": row["created_at"]
+        }
+    return None
+
+
+def get_user_by_id(user_id: int):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT id, name, email, username, created_at FROM users WHERE id = {SQL_PLACEHOLDER}",
+        (user_id,)
+    )
+    row = cur.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return dict(row)
 
 
 def get_domain_assignments(user_id: int, domain: str):
@@ -111,19 +182,6 @@ def get_survey_results(user_id: int):
     rows = [dict(row) for row in cur.fetchall()]
     conn.close()
     return rows
-
-
-def verify_user(username: str, password: str):
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute(f"SELECT id, username, password_hash FROM users WHERE username = {SQL_PLACEHOLDER}", (username,))
-    row = cur.fetchone()
-    conn.close()
-    if not row:
-        return None
-    if check_password_hash(row["password_hash"], password):
-        return {"id": row["id"], "username": row["username"]}
-    return None
 
 
 def save_survey_result(user_id: int, survey_type: str, data: dict):

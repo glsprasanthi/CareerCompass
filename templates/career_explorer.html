@@ -15,6 +15,13 @@
         <li><a href="/career-discovery">Retake Assessment</a></li>
         <li><a href="/roadmap">Roadmaps</a></li>
         <li><a href="/resources">Resources</a></li>
+        {% if logged_in %}
+            <li><a href="/profile">Profile</a></li>
+            <li><a href="/logout">Logout</a></li>
+        {% else %}
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register">Register</a></li>
+        {% endif %}
     </ul>
 </nav>
 
@@ -42,7 +49,6 @@
             <p>
                 You may enjoy exploring both domains before choosing a specialization.
             </p>
-        
         {% else %}
             <p>
                 <strong>Primary Match:</strong>
@@ -55,7 +61,6 @@
                 {{ domain_names[secondary_domain] }}
                 ({{ secondary_score }}%)
             </p>
-
         {% endif %}
     </div>
 

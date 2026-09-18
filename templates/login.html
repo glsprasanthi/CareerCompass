@@ -13,36 +13,28 @@
           <h2>Welcome back</h2>
           <p class="intro">Enter your email and password to access your account.</p>
 
-          {% with messages = get_flashed_messages() %}
+          {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-              <div class="error">
-                <ul>
-                  {% for m in messages %}
-                    <li>{{ m }}</li>
-                  {% endfor %}
-                </ul>
+              <div class="flash-messages">
+                {% for category, m in messages %}
+                  <div class="flash-message flash-{{ category }}">{{ m }}</div>
+                {% endfor %}
               </div>
             {% endif %}
           {% endwith %}
 
           <form method="post">
             <label class="form-label">Email</label>
-            <input name="username" class="form-input" placeholder="you@example.com" />
+            <input name="email" type="text" class="form-input" placeholder="you@example.com" required autofocus />
 
             <label class="form-label">Password</label>
-            <input name="password" type="password" class="form-input" />
-
-            <div class="remember">
-              <label><input type="checkbox" /> Remember me</label>
-              <div style="flex:1"></div>
-              <a class="small-link" href="#">Forgot Your Password?</a>
-            </div>
+            <input name="password" type="password" class="form-input" placeholder="Enter your password" required />
 
             <button type="submit" class="btn primary-btn">Log In</button>
 
           </form>
 
-          <p class="center" style="margin-top:12px">Don't have an account? <a href="{{ url_for('register') }}">Register Now.</a></p>
+          <p class="center" style="margin-top:16px">Don't have an account? <a href="{{ url_for('register') }}">Register Now</a></p>
         </div>
       </div>
 
