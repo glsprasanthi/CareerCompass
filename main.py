@@ -252,12 +252,14 @@ def resource_hub(specialization):
         return redirect(url_for("career_discovery"))
 
     resources = SPECIALIZATION_RESOURCES.get(specialization, DOMAIN_RESOURCE_HUBS.get(domain))
-    hub_resources = DOMAIN_RESOURCE_HUBS.get(domain, WEB_RESOURCE_HUB)
-    youtube_channels = hub_resources.get("youtube_channels", YOUTUBE_CHANNELS)
+    hub_resources = resources
+    youtube_channels = resources.get("youtube_channels", [])
 
     return render_template(
         "resource_hub.html",
         specialization=specialization,
+        domain=domain,
+        domain_name=DOMAIN_NAMES.get(domain, domain),
         resources=resources,
         hub_resources=hub_resources,
         youtube_channels=youtube_channels
@@ -340,8 +342,8 @@ def dashboard(specialization):
         return redirect(url_for("career_discovery"))
 
     domain = SPECIALIZATION_DOMAINS[specialization]
-    hub_resources = DOMAIN_RESOURCE_HUBS.get(domain, WEB_RESOURCE_HUB)
-    youtube_channels = hub_resources.get("youtube_channels", YOUTUBE_CHANNELS)
+    resources = SPECIALIZATION_RESOURCES.get(specialization, DOMAIN_RESOURCE_HUBS.get(domain))
+    youtube_channels = resources.get("youtube_channels", YOUTUBE_CHANNELS)
 
     return render_template(
         "dashboard.html",
@@ -351,7 +353,7 @@ def dashboard(specialization):
         specialization_name=SPECIALIZATION_NAMES[specialization],
         career=CAREER_DETAILS[specialization],
         roadmap=LEARNING_ROADMAPS[specialization],
-        resources=SPECIALIZATION_RESOURCES[specialization],
+        resources=resources,
         youtube_channels=youtube_channels
     )
 
